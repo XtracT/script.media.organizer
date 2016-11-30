@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="General">
+	    <setting label="Files source folder" type="folder" id="source_folder" source="videos" option="writeable" default=""/>
+	    <setting label="Unorganizable files folder" type="folder" id="check_folder" source="auto" option="writeable" default=""/>
+      <setting label="Delete non media files" type="bool" id="delete_files" default="false"/>
+      <setting label="Update libraries on end" type="bool" id="update_libraries" default="true"/>
+      <setting label="Movies folder" type="folder" id="movies_folder" source="videos" option="writeable" default=""/>
+      <setting label="Shows folder" type="folder" id="shows_folder" source="videos" option="writeable" default=""/>
+      <setting label="Anime folder" type="folder" id="anime_folder" source="videos" option="writeable" default=""/>
+      <setting label="Music folder" type="folder" id="music_folder" source="audio" option="writeable" default=""/>
+	</category>
+</settings>
