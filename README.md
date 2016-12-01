@@ -1,16 +1,17 @@
 # script.media.organizer
-Media Organizer add-on for kodi
+A simple Media Organizer add-on for kodi, targeted for Kodi users in android.
 
-Organize your media files (movies, TV shows, anime and music) from a source folder, where everything is mixed, to the proper destination folder, in such a way that kodi libraries  can find your media and use the proper data scrappers.
+Organize your media files (movies, TV shows, anime and music) from a source folder, where everything is mixed, to the proper destination folder, in such a way that Kodi libraries can find your media and use the proper data scrappers.
 
-Two options to configurate, a part from folders:
+Just select the different folders and this two options in add-on settings:
 - Update libraries when moving files has finished
 - Remove files. Those files which are not media (video or audio) can be automatically removed or moved to the unorganizable files folder
 
 # Right now:
-- Uses imdb movies and TV shows database
+- Uses IMDb movies and TV shows database
 - Movies and TV shows which are not found are moved to unorganizable files
 - Trailer and Sample files are moved to unorganizable files or deleted
+- Non media files (nfo, txt, pictures, etc) are moved or deleted too
 - Music files need to be tagged in order for kodi to find proper data
 
 # Usage:
