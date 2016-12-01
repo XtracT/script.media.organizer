@@ -1,8 +1,7 @@
+import xbmc
 import xbmcaddon
 import xbmcgui
 import os
-#import errno
-import re
 import shutil
 import time
 import resources.lib.untangle as untangle
@@ -41,7 +40,6 @@ def find_file_type(filename):
 		'.wpl', '.wtv', '.wve', '.wvx', '.xej', '.xel', '.xesc', '.xfl', '.xlmv', '.xmv', '.xvid', '.y4m', '.yog',
 		'.yuv', '.zeg','.zm1', '.zm2', '.zm3', '.zmv')
 
-
 	audio_file_extensions = (
 		'.midi', '.aiff', '.wave', '.aiff', '.ac3', '.dts', '.alac', '.amr', '.flac,', '.ape', '.ym', '.adpcm', '.cdda','.m4a',
 		'.m4b', '.wv', '.webm', '.realaudio', '.shn', '.wavpack,', '.mpc', '.shorten', '.speex', '.it', '.s3m', '.mod','.xm',
@@ -73,39 +71,61 @@ def move_to_folder(full_filename,folder,filename):
 		os.makedirs(folder)
 	shutil.move(full_filename, os.path.join(folder, filename))
 
+def load_settings():
+	global source_folder, check_folder, delete_files, update_libraries, show_notifications, movies_folder, shows_folder, anime_folder, music_folder
+	source_folder = xbmc.translatePath(__settings__.getSetting("source_folder"))
+	check_folder = xbmc.translatePath(__settings__.getSetting("check_folder"))
+	delete_files = bool(__settings__.getSetting("remove_files"))
+	update_libraries = bool(__settings__.getSetting("update_libraries"))
+	show_notifications = bool(__settings__.getSetting("show_notifications"))
+	try:
+		movies_folder = xbmc.translatePath(__settings__.getSetting("movies_folder"))
+	except:
+		movies_folder = check_folder
+	try:
+		shows_folder = xbmc.translatePath(__settings__.getSetting("shows_folder"))
+	except:
+		shows_folder = check_folder
+	try:
+		anime_folder = xbmc.translatePath(__settings__.getSetting("anime_folder"))
+	except:
+		anime_folder = check_folder
+	try:
+		music_folder = xbmc.translatePath(__settings__.getSetting("music_folder"))
+	except:
+		music_folder = check_folder
+
+def send_notification(text,time):
+	if show_notifications:
+		xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % (__addonname__, text, time, __icon__))
+
 #Stop script execution if kodi is playing a file
 if xbmc.Player().isPlaying():
 	sys.exit()
 
+#Get addon data
 addon       = xbmcaddon.Addon()
 __addonname__   = addon.getAddonInfo('name')
 __settings__   = xbmcaddon.Addon(addon.getAddonInfo('id'))
 __icon__ = addon.getAddonInfo('icon')
 
 #Here a try catch to get settings, if not open settings dialogue
-try:
-	source_folder = xbmc.translatePath(__settings__.getSetting("source_folder"))
-	check_folder = xbmc.translatePath(__settings__.getSetting("check_folder"))
-	delete_files = bool(__settings__.getSetting("remove_files"))
-	update_libraries = bool(__settings__.getSetting("update_libraries"))
-	movies_folder = xbmc.translatePath(__settings__.getSetting("movies_folder"))
-	shows_folder = xbmc.translatePath(__settings__.getSetting("shows_folder"))
-	anime_folder = xbmc.translatePath(__settings__.getSetting("anime_folder"))
-	music_folder = xbmc.translatePath(__settings__.getSetting("music_folder"))
+settings_loaded = False
+while not settings_loaded:
+	try:
+		load_settings()
+		settings_loaded = True
+	except:
+		#TO-DO: pop up to say first settings must be configured, if no folder selected media goes to Unorganizable files folder
+		__settings__.openSettings()  # this will open settings window
+		load_settings()
+#TO-DO
+create_symlink = True
+#check stupid folders in movies
 
-except:
-	__settings__.openSettings()  # this will open settings window
-	source_folder = xbmc.translatePath(__settings__.getSetting("source_folder"))
-	check_folder = xbmc.translatePath(__settings__.getSetting("check_folder"))
-	delete_files = bool(__settings__.getSetting("remove_files"))
-	update_libraries = bool(__settings__.getSetting("update_libraries"))
-	movies_folder = xbmc.translatePath(__settings__.getSetting("movies_folder"))
-	shows_folder = xbmc.translatePath(__settings__.getSetting("shows_folder"))
-	anime_folder = xbmc.translatePath(__settings__.getSetting("anime_folder"))
-	music_folder = xbmc.translatePath(__settings__.getSetting("music_folder"))
 
-xbmc.executebuiltin('Notification(%s, %s, %d, %s)'%(__addonname__,'Initializing Media Organizer...', 100, __icon__))
-
+#Prepare script
+if show_notifications: xbmc.executebuiltin('Notification(%s, %s, %d, %s)'%(__addonname__,'Initializing Media Organizer...', 100, __icon__))
 video_organized = False
 audio_organized = False
 
@@ -123,7 +143,7 @@ if os.path.isdir(source_folder):
 				fileNum = fileNum + 1
 				full_filename = os.path.join(root, filename)
 				file_type = find_file_type(full_filename)
-				xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % (__addonname__, 'File ' + str(fileNum) + '/' + str(file_count) + ' - ' + file_type, 1, __icon__))
+				#xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % (__addonname__, 'File ' + str(fileNum) + '/' + str(file_count) + ' - ' + file_type, 1, __icon__))
 
 				if  file_type=="Video":
 					video_organized = True
@@ -163,10 +183,16 @@ if os.path.isdir(source_folder):
 
 #Update the video library
 if update_libraries & video_organized:
-	xbmc.executebuiltin("updatelibrary(video)")
-	time.sleep(1)
-	xbmc.executebuiltin("cleanlibrary(video)")
+	send_notification(file_count + ' iles organized! Updating video library', 500)
+	xbmc.executebuiltin('UpdateLibrary(video)')
+	time.sleep(0.1)
+	xbmc.executebuiltin('CleanLibrary(video)')
 elif update_libraries & audio_organized:
-	xbmc.executebuiltin("updatelibrary(audio)")
-	time.sleep(1)
-	xbmc.executebuiltin("cleanlibrary(audio)")
+	send_notification(file_count + ' iles organized! Updating music library', 500)
+	xbmc.executebuiltin('UpdateLibrary(music)')
+	time.sleep(0.1)
+	xbmc.executebuiltin('CleanLibrary(music)')
+elif file_count == 0:
+	send_notification('No files to organize!', 200)
+else:
+	send_notification(file_count + ' files organized!', 200)
